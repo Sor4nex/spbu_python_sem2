@@ -2,7 +2,7 @@ from typing import Mapping
 
 import pytest
 
-from spbu_python_sem2.src.homeworks.homework1.registry import *
+from src.homeworks.homework1.registry import *
 
 
 class TestRegistry:
