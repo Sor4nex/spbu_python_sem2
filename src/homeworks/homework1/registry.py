@@ -1,17 +1,18 @@
 from typing import Callable, Generic, Optional, TypeVar
+from functools import wraps
 
-Interface = TypeVar("Interface")
+
+I = TypeVar("I")
 
 
-class Registry(Generic[Interface]):
-    def __init__(self, *, default: Optional[Interface] = None) -> None:
-        self.registry: dict[str, Interface] = dict()
-        self.default: Optional[Interface] = default
+class Registry(Generic[I]):
+    def __init__(self, *, default: Optional[I] = None) -> None:
+        self.registry: dict[str, I] = dict()
+        self.default: Optional[I] = default
 
-    def register(self, *, name: str) -> Callable[[Interface], Interface]:
+    def register(self, *, name: str) -> Callable[[I], I]:
         """Returns decorator, registering a class by name"""
-
-        def _substitution_func(cls: Interface) -> Interface:
+        def _substitution_func(cls: I) -> I:
             self.registry[name] = cls
             return cls
 
@@ -19,10 +20,9 @@ class Registry(Generic[Interface]):
             raise ValueError(f"name {name} is already used in this registry")
         return _substitution_func
 
-    def dispatch(self, name: str) -> Interface:
+    def dispatch(self, name: str) -> Optional[I]:
         """Search for class in registry by name and returns it. If name not found returns default of ValueError"""
-        if name not in self.registry.keys():
-            if self.default is not None:
-                return self.default
-            raise ValueError(f"no class, named {name} in this register")
-        return self.registry[name]
+        result = self.registry.get(name, self.default)
+        if result is None:
+            raise KeyError(f"no class, named {name} in this register")
+        return result

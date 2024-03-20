@@ -4,64 +4,58 @@ import pytest
 
 from src.homeworks.homework1.registry import *
 
-registry = Registry[Mapping]()
-registry_with_default = Registry[Mapping](default=dict)
 
+class TestRegistry:
+    registry = Registry()
+    registry_with_default = Registry(default=dict)
 
-@registry.register(name="lol")
-class MapLol(Mapping):
-    def __init__(self) -> None:
+    @registry.register(name="letter A")
+    class A:
         pass
 
-    def __iter__(self) -> None:
+    @registry.register(name="буква А")
+    class RussianA:
         pass
 
-    def __getitem__(self, item) -> None:
+    @registry.register(name="letter a")
+    class LittleA:
         pass
 
-    def __len__(self) -> None:
+    @registry_with_default.register(name="letter B")
+    class B:
         pass
 
+    def test_register(self):
+        assert list(self.registry.registry) == ["letter A", "буква А", "letter a"]
 
-@registry.register(name="kek")
-class MapKek(Mapping):
-    def __init__(self) -> None:
-        pass
+    def test_register_name_already_exist(self):
+        with pytest.raises(ValueError):
+            @self.registry.register(name="letter A")
+            class Zlodey:
+                pass
 
-    def __iter__(self) -> None:
-        pass
+    def test_register_default_not_set(self):
+        assert self.registry.default is None
 
-    def __getitem__(self, item) -> None:
-        pass
+    def test_register_with_default_default(self):
+        assert issubclass(self.registry_with_default.default, dict)
 
-    def __len__(self) -> None:
-        pass
+    def test_dispatch(self):
+        A = self.registry.dispatch("letter A")
+        a = self.registry.dispatch("letter a")
+        russian_a = self.registry.dispatch("буква А")
+        assert (issubclass(A, self.A) and
+                issubclass(a, self.LittleA) and
+                issubclass(russian_a, self.RussianA))
 
+    def test_dispatch_not_exist(self):
+        with pytest.raises(KeyError):
+            a = self.registry.dispatch("letter B")
 
-def test_register() -> None:
-    assert (
-        isinstance(registry.registry["lol"](), MapLol)
-        and isinstance(registry.registry["kek"](), MapKek)
-        and isinstance(registry_with_default.default(), dict)
-    )
+    def test_dispatch_with_default(self):
+        B = self.registry_with_default.dispatch("letter B")
+        assert issubclass(B, self.B)
 
-
-def test_dispatch() -> None:
-    assert (
-        isinstance(registry.dispatch("lol")(), MapLol)
-        and isinstance(registry.dispatch("kek")(), MapKek)
-        and isinstance(registry_with_default.dispatch("чтоточегонет")(), dict)
-    )
-
-
-def test_register_exception_case() -> None:
-    with pytest.raises(ValueError):
-
-        @registry.register(name="lol")
-        class YaUpal(Mapping):
-            pass
-
-
-def test_dispatch_exception_case() -> None:
-    with pytest.raises(ValueError):
-        registry.dispatch(name="этогоНетВЭтомРегистре")
+    def test_dispatch_not_exist_with_default(self):
+        default = self.registry_with_default.dispatch("do not exist")
+        assert issubclass(default, dict)
