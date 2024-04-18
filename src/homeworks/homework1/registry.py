@@ -1,7 +1,7 @@
 import collections
 from typing import Callable, Generic, Mapping, Optional, Type, TypeVar
 
-SuperClass = TypeVar("SuperClass")
+I = TypeVar("I")
 
 
 USER_OPTIONS = """Choose dictionary you want:
@@ -11,15 +11,15 @@ USER_OPTIONS = """Choose dictionary you want:
 input: """
 
 
-class Registry(Generic[SuperClass]):
-    def __init__(self, *, default: Optional[Type[SuperClass]] = None) -> None:
-        self.registry: dict[str, Type[SuperClass]] = dict()
-        self.default: Optional[Type[SuperClass]] = default
+class Registry(Generic[I]):
+    def __init__(self, *, default: Optional[Type[I]] = None) -> None:
+        self.registry: dict[str, Type[I]] = dict()
+        self.default: Optional[Type[I]] = default
 
-    def register(self, *, name: str) -> Callable[[Type[SuperClass]], Type[SuperClass]]:
+    def register(self, *, name: str) -> Callable[[Type[I]], Type[I]]:
         """Returns decorator, registering a class by name"""
 
-        def _substitution_func(cls: Type[SuperClass]) -> Type[SuperClass]:
+        def _substitution_func(cls: Type[I]) -> Type[I]:
             self.registry[name] = cls
             return cls
 
@@ -27,7 +27,7 @@ class Registry(Generic[SuperClass]):
             raise ValueError(f"name {name} is already used in this registry")
         return _substitution_func
 
-    def dispatch(self, name: str) -> Type[SuperClass]:
+    def dispatch(self, name: str) -> Type[I]:
         """Search for class in registry by name and returns it. If name not found returns default of ValueError"""
         result = self.registry.get(name, self.default)
         if result is None:
