@@ -1,50 +1,31 @@
 import random as rnd
 from typing import Any, Generic, Iterator, MutableMapping, Optional, Protocol, TypeVar
 
-STRING_TREE_REPR = "(id:{},len:{},root:{},{})"
-STRING_TREE_STR = """tree id: {},
-element number: {},
-root: {},
-all nodes:
-key|value|priority|left|right"""
+
+K = TypeVar("K")
 
 
-class Comparable(Protocol):
-    def __lt__(self, other: "NodeKey") -> bool:
-        return self < other
-
-
-NodeKey = TypeVar("NodeKey", bound=Comparable)
-
-
-class Node(Generic[NodeKey]):
-    def __init__(self, key: NodeKey, value: Any) -> None:
+class Node(Generic[K]):
+    def __init__(self, key: K, value: Any) -> None:
         self.key = key
         self.value = value
         self.priority = rnd.random()
-        self.right_node: Optional[Node[NodeKey]] = None
-        self.left_node: Optional[Node[NodeKey]] = None
+        self.right_node: Optional[Node[K]] = None
+        self.left_node: Optional[Node[K]] = None
 
     def __str__(self) -> str:
-        node_data = self.get_node_data()
-        return f"key:{node_data[0]}|value{node_data[2]}|priority:{node_data[1]}|left key:{node_data[3]}|right key:{node_data[4]}"
+        return f"[key:{self.key}|value:{self.value}|left key:{str(self.left_node)}|right key:{str(self.right_node)}]"
 
-    def get_node_data(self) -> tuple:
-        right = (self.right_node.key, self.right_node.value) if self.right_node is not None else None
-        left = (self.left_node.key, self.left_node.value) if self.left_node is not None else None
-        return self.key, self.priority, self.value, left, right
+    def __repr__(self) -> str:
+        return f"[key:{self.key}|value:{self.value}|priority:{self.priority:0.4f}|left key:{repr(self.left_node)}|right key:{repr(self.right_node)}]"
 
 
-class CartesianTree(Generic[NodeKey], MutableMapping):
-    tree_id = 0
-
+class CartesianTree(Generic[K], MutableMapping):
     def __init__(self) -> None:
-        self.root: Optional[Node[NodeKey]] = None
+        self.root: Optional[Node[K]] = None
         self.len: int = 0
-        self.id = CartesianTree.tree_id
-        CartesianTree.tree_id += 1
 
-    def __setitem__(self, key: NodeKey, value: Any) -> None:
+    def __setitem__(self, key: K, value: Any) -> None:
         if key in self:
             del self[key]
         insert_element = Node(key, value)
@@ -53,39 +34,33 @@ class CartesianTree(Generic[NodeKey], MutableMapping):
         self.root = CartesianTree.merge(tree_left_key_split_root, tree_right_key_split_root)
         self.len += 1
 
-    def __delitem__(self, key: NodeKey) -> None:
-        def _del_recursively(key: NodeKey, node: Optional[Node[NodeKey]]) -> Optional[Node[NodeKey]]:
+    def __delitem__(self, key: K) -> None:
+        def _del_recursively(key: Any, node: Optional[Node[K]]) -> Optional[Node[K]]:
             if node is None:
-                raise KeyError()
+                raise KeyError(f"cannot delete node. Key {key} not found")
             elif key > node.key:
                 node.right_node = _del_recursively(key, node.right_node)
-                return node
             elif key < node.key:
                 node.left_node = _del_recursively(key, node.left_node)
-                return node
-            return CartesianTree.merge(node.left_node, node.right_node)
+            else:
+                return CartesianTree.merge(node.left_node, node.right_node)
+            return node
 
         self.root = _del_recursively(key, self.root)
         self.len -= 1
 
-    def __getitem__(self, key: NodeKey) -> Any:
-        result = CartesianTree._search_node(key, self.root)
+    def __getitem__(self, key: K) -> Any:
+        result = self._search_node(key, self.root)
         if result is None:
             raise KeyError(f"key {key} not found")
         return result.value
 
-    def __iter__(self) -> Iterator[NodeKey]:
-        def _traverse(node: Optional[Node[NodeKey]]) -> Iterator[NodeKey]:
-            if node is None:
-                pass
-            elif node.right_node is None and node.left_node is None:
+    def __iter__(self) -> Iterator[K]:
+        def _traverse(node: Optional[Node[K]]) -> Iterator[K]:
+            if node:
+                yield from _traverse(node.left_node)
                 yield node.key
-            else:
-                if node.left_node is not None:
-                    yield from _traverse(node.left_node)
-                yield node.key
-                if node.right_node is not None:
-                    yield from _traverse(node.right_node)
+                yield from _traverse(node.right_node)
 
         return _traverse(self.root)
 
@@ -93,44 +68,26 @@ class CartesianTree(Generic[NodeKey], MutableMapping):
         return self.len
 
     def __repr__(self) -> str:
-        tree_data = self._get_tree_data()
-        return STRING_TREE_REPR.format(
-            tree_data["tree_id"], tree_data["tree_len"], tree_data["root"], tree_data["nodes"]
-        )
+        if self.root:
+            return f"[len:{self.len}]|root:{repr(self.root)}]"
+        return "empty tree"
 
     def __str__(self) -> str:
-        tree_data = self._get_tree_data()
-        output_str = STRING_TREE_STR.format(tree_data["tree_id"], tree_data["tree_len"], tree_data["root"])
-        for node in tree_data["nodes"]:
-            output_str += "\n" + f"{node[0]}|{node[2]}|{node[1]}|[{node[3]},{node[4]}]"
-        return output_str
+        if self.root:
+            return f"[len:{self.len}|root:{str(self.root)}]"
 
-    @staticmethod
-    def _search_node(key: NodeKey, node: Optional[Node[NodeKey]]) -> Optional[Node[NodeKey]]:
+    def _search_node(self, key: Any, node: Optional[Node[K]]) -> Optional[Node[K]]:
         if node is None:
             return None
         elif key > node.key:
-            return CartesianTree._search_node(key, node.right_node)
+            return self._search_node(key, node.right_node)
         elif key < node.key:
-            return CartesianTree._search_node(key, node.left_node)
+            return self._search_node(key, node.left_node)
         else:
             return node
 
-    def _get_tree_data(self) -> dict:
-        tree_data: dict = {
-            "tree_id": self.tree_id,
-            "tree_len": len(self),
-            "root": (self.root.key, self.root.value) if self.root is not None else None,
-            "nodes": [],
-        }
-        for key in self:
-            node = CartesianTree._search_node(key, self.root)
-            if node is not None:
-                tree_data["nodes"].append(node.get_node_data())
-        return tree_data
-
     @staticmethod
-    def split(key: NodeKey, node: Optional[Node[NodeKey]]) -> tuple[Optional[Node[NodeKey]], Optional[Node[NodeKey]]]:
+    def split(key: Any, node: Optional[Node[K]]) -> tuple[Optional[Node[K]], Optional[Node[K]]]:
         if node is None:
             return None, None
         if key > node.key:
@@ -143,7 +100,7 @@ class CartesianTree(Generic[NodeKey], MutableMapping):
             return node1, node
 
     @staticmethod
-    def merge(node1: Optional[Node[NodeKey]], node2: Optional[Node[NodeKey]]) -> Optional[Node[NodeKey]]:
+    def merge(node1: Optional[Node[K]], node2: Optional[Node[K]]) -> Optional[Node[K]]:
         if node2 is None:
             return node1
         elif node1 is None:

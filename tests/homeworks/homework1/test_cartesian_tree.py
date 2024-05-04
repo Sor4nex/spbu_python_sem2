@@ -32,15 +32,6 @@ def check_tree_correctness(tree: CartesianTree) -> bool:
     return _check_correctness_recursively(tree.root)
 
 
-def test_tree_id() -> None:
-    results = []
-    first_id = CartesianTree.tree_id
-    for i in range(10):
-        test_tree_object = CartesianTree()
-        results.append(test_tree_object.root is None and test_tree_object.id == first_id + i)
-    assert all(results)
-
-
 def test_tree_set_item() -> None:
     results = []
     for _ in range(100):
