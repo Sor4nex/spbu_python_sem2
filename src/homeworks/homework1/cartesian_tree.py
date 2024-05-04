@@ -74,6 +74,7 @@ class CartesianTree(Generic[K], MutableMapping):
     def __str__(self) -> str:
         if self.root:
             return f"[len:{self.len}|root:{str(self.root)}]"
+        return "empty tree"
 
     def _search_node(self, key: Any, node: Optional[Node[K]]) -> Optional[Node[K]]:
         if node is None:
