@@ -1,6 +1,5 @@
 import random as rnd
-from typing import Any, Generic, Iterator, MutableMapping, Optional, Protocol, TypeVar
-
+from typing import Any, Generic, Iterator, MutableMapping, Optional, TypeVar
 
 K = TypeVar("K")
 
