@@ -41,7 +41,7 @@ class Vector(Generic[T]):
     def __len__(self) -> int:
         return self.dim
 
-    def scalar_multiply(self, other: "Vector") -> float:
+    def scalar_multiply(self, other: "Vector") -> T:
         if self.dim != other.dim:
             raise DimensionalError("unequal dimensions")
         return sum([self.coords[i] * other.coords[i] for i in range(self.dim)])
@@ -59,5 +59,5 @@ class Vector(Generic[T]):
     def is_null(self) -> bool:
         return not any(self.coords)
 
-    def get_len(self) -> float:
+    def get_len(self) -> T:
         return sum(map(lambda x: x * x, self.coords)) ** 0.5
