@@ -1,0 +1,7 @@
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+future>=0.18.3
+bs4>=0.0.1
+ijson>=3.2.3
+seaborn>=0.12.2
+pandas>=1.5.3
