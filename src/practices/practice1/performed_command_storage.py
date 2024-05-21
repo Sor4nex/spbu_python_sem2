@@ -4,20 +4,6 @@ import src.practices.practice1.actions as acts
 
 INFO_LIST_CONDITION = """list: {},
 list length: {}"""
-INFO_AVAILABLE_COMMANDS = """Available commands:
-1. insert (position) (value)
-2. insert_start (value)
-3. insert_end (value)
-4. change_position (first position) (second position)
-5. add (position) (value)
-6. subtract (position) (value)
-7. add_to_all (value)
-8. subtract_from_all (value)
-9. reverse
-10. remove (position)
-11. undo
-12. exit
-input: """
 ERROR_ACTION_NOT_FOUND = "\nerror: cannot find action {}\n"
 ERROR_WRONG_ARGS_TYPE = "\nerror: some arguments are not integers\n"
 ERROR_WRONG_INDEX = "\nerror: some index are out of range\n"
@@ -42,13 +28,23 @@ class PerformedCommandStorage:
         return not len(self.commands_list)
 
 
+def prepare_commands_string() -> str:
+    result_str = """Available commands:
+0. exit"""
+    for i, command in enumerate(acts.ACTIONS_REGISTRY.registry.keys()):
+        result_str += f"\n{i+1}. {command}"
+    result_str += "\ninput: "
+    return result_str
+
+
 def main() -> None:
     user_input = [""]
     user_list: list = []
     command_storage = PerformedCommandStorage(user_list)
+    info_available_commands_str = prepare_commands_string()
     while user_input[0] != "exit":
         print(INFO_LIST_CONDITION.format(command_storage.object_list, len(command_storage.object_list)))
-        user_input = input(INFO_AVAILABLE_COMMANDS.format(user_list, len(user_list))).split()
+        user_input = input(info_available_commands_str.format(user_list, len(user_list))).split()
         if user_input[0] == "undo":
             try:
                 command_storage.undo()

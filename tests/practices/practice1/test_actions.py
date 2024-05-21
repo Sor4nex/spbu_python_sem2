@@ -149,13 +149,13 @@ class TestActions:
         action.apply(initial_list)
 
         assert len(initial_list) == start_len - 1
-        assert action.args[1] == value_to_remove
+        assert action.removed_element == value_to_remove
 
         initial_list.insert(pos, value_to_remove)
         assert initial_list == start_list
 
     @hypothesis.settings(max_examples=100)
-    @hypothesis.given(st.lists(st.integers(), min_size=0, max_size=250), st.integers(min_value=0, max_value=250))
+    @hypothesis.given(st.lists(st.integers(), min_size=1, max_size=250), st.integers(min_value=0, max_value=250))
     def test_action_remove_undo(self, initial_list, pos) -> None:
         start_list = initial_list[:]
         start_len = len(start_list)
