@@ -8,7 +8,7 @@ import seaborn as sns
 from merge_sort import merge_sort, merge_sort_multithread
 
 
-def draw_chart(measures: dict, chart_filename: str, n_elem: int) -> None:
+def draw_chart(measures: pd.DataFrame, chart_filename: str, n_elem: int) -> None:
     plot = sns.lineplot(measures)
     plot.set(xlabel="Threads number", ylabel="Time(sec.)", title=f"Merge sort time comp.({n_elem} elements)")
     plot.figure.savefig(chart_filename)

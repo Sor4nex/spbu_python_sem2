@@ -1,3 +1,4 @@
+import random
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 
 
@@ -27,9 +28,10 @@ def merge_sort_multithread(unsorted_list: list[int], n_jobs: int, multiprocess: 
     pool = ThreadPoolExecutor if not multiprocess else ProcessPoolExecutor
     slice_len = len(unsorted_list) // n_jobs
     list_slices = [unsorted_list[j : j + slice_len] for j in range(0, len(unsorted_list), slice_len)]
-    res: list[int] = []
     with pool(max_workers=n_jobs) as executor:
         sorted_parts = [executor.submit(merge_sort, single_slice) for single_slice in list_slices]
-        for part in as_completed(sorted_parts):
-            res = unite_sorted_sublists(res, part.result())
-    return res
+        while len(sorted_parts) > 1:
+            lst1 = sorted_parts.pop().result()
+            lst2 = sorted_parts.pop().result()
+            sorted_parts.append(executor.submit(unite_sorted_sublists, lst1, lst2))
+    return sorted_parts[0].result()
