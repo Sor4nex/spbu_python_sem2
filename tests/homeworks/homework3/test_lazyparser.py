@@ -1,6 +1,8 @@
-from src.homeworks.homework3.lazyparser import *
 from dataclasses import dataclass
+
 import pytest
+
+from src.homeworks.homework3.lazyparser import *
 
 
 @dataclass
