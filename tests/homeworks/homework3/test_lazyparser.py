@@ -28,11 +28,17 @@ def test_metaclass() -> None:
     assert A.__annotations__["param2"] == str
 
 
-@pytest.mark.parametrize("filename, expected", [
-    ("jsons_for_tests/json_dict.json", {"param1": "jaj", "param2": 20}),
-    ("jsons_for_tests/json_list.json", {"param1": "jaja", "param2": 21}),
-    ("jsons_for_tests/json_list_nested.json", {"param1": [1, 2, 3], "param2": {"param1": [2, 3, 4], "param2": None}})
-])
+@pytest.mark.parametrize(
+    "filename, expected",
+    [
+        ("jsons_for_tests/json_dict.json", {"param1": "jaj", "param2": 20}),
+        ("jsons_for_tests/json_list.json", {"param1": "jaja", "param2": 21}),
+        (
+            "jsons_for_tests/json_list_nested.json",
+            {"param1": [1, 2, 3], "param2": {"param1": [2, 3, 4], "param2": None}},
+        ),
+    ],
+)
 def test_parse_json(filename: str, expected: dict) -> None:
     result = parse_json(filename)
     assert result == expected
@@ -60,17 +66,22 @@ def test_parse_class_from_json() -> None:
     assert result3.attr2 == (1, 2, 3)
     assert isinstance(result3.__dict__["attr1"], RuntimeParser)
     assert isinstance(result3.attr1.__dict__["attr1"], RuntimeParser)
-    assert result3.attr1 == B(A(100, "esli zakrou bez peresdach vipu pivaaaaa"), ["no", "etomu", "vidno", "ne", "bivat", "hnik("])
+    assert result3.attr1 == B(
+        A(100, "esli zakrou bez peresdach vipu pivaaaaa"), ["no", "etomu", "vidno", "ne", "bivat", "hnik("]
+    )
     assert isinstance(result3.attr1.attr1, A)
     assert isinstance(result3.__dict__["attr1"], B)
 
 
-@pytest.mark.parametrize("dc, json_path", [
-    (A, "jsons_for_tests/json_A.json"),
-    (B, "jsons_for_tests/json_B.json"),
-    (C, "jsons_for_tests/json_C.json"),
-    (A, "jsons_for_tests/json_A_strictness.json")
-])
+@pytest.mark.parametrize(
+    "dc, json_path",
+    [
+        (A, "jsons_for_tests/json_A.json"),
+        (B, "jsons_for_tests/json_B.json"),
+        (C, "jsons_for_tests/json_C.json"),
+        (A, "jsons_for_tests/json_A_strictness.json"),
+    ],
+)
 def test_dump_class_to_json(dc, json_path) -> None:
     json1 = parse_json(json_path)
     assert json.loads(dump_class_to_json(parse_class_from_json(dc, json_path))) == json1
