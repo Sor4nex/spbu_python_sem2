@@ -3,7 +3,6 @@ from typing import TypeVar
 
 import lazyparser as lp
 
-
 T = TypeVar("T")
 
 
@@ -36,8 +35,7 @@ def main() -> None:
     print("client2 fields:", client2.__dict__)
     print(client1.balance)
     print(client2.balance)
-
-    print(isinstance(Client.__dict__["name"], lp.Descr))
+    print(lp.dump_class_to_json(client1))
 
 
 if __name__ == "__main__":

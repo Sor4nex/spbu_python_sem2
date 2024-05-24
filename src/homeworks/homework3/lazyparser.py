@@ -1,7 +1,8 @@
-from types import GenericAlias
-from typing import TypeVar, Any
-import ijson
+import json
+from dataclasses import asdict, dataclass
+from typing import Any, TypeVar
 
+import ijson
 
 K = TypeVar("K")
 
@@ -27,7 +28,7 @@ class RuntimeParser:
         self.is_strict: bool = strict
 
     def parse(self) -> Any:
-        return from_dict(self.cls_to_parse, self.given_dict, self.is_strict)
+        return parse_class_from_dict(self.cls_to_parse, self.given_dict, self.is_strict)
 
 
 class MetaDataclass(type):
@@ -44,15 +45,16 @@ def parse_json(file_name: str) -> dict:
                 if isinstance(item, list):
                     return item[0]
                 return item
+            return {}
         except ijson.IncompleteJSONError:
             raise TypeError("file is empty")
 
 
 def parse_class_from_json(cls: type[K], json_filename: str, strict: bool = False) -> K:
-    return from_dict(cls, parse_json(json_filename), strict)
+    return parse_class_from_dict(cls, parse_json(json_filename), strict)
 
 
-def from_dict(cls: type[K], given_dict: dict, strict: bool) -> K:
+def parse_class_from_dict(cls: type[K], given_dict: dict, strict: bool = False) -> K:
     if not strict:
         other_fields = dict()
         keys_to_del = []
@@ -60,10 +62,10 @@ def from_dict(cls: type[K], given_dict: dict, strict: bool) -> K:
     for key in given_dict:
         if key in cls_fields:
             arg_type = cls_fields[key]
-            if isinstance(arg_type, GenericAlias):
-                arg_type = arg_type.__origin__
             if arg_type not in [int, str, float, list, tuple, dict]:
                 given_dict[key] = RuntimeParser(arg_type, given_dict[key], strict)
+            else:
+                given_dict[key] = arg_type(given_dict[key])
             continue
         if not strict:
             keys_to_del.append(key)
@@ -80,3 +82,10 @@ def from_dict(cls: type[K], given_dict: dict, strict: bool) -> K:
         return result
     except TypeError:
         raise KeyError("some dataclass fields left empty")
+
+
+def dump_class_to_json(dataclass: Any) -> str:
+    dataclass_dict = asdict(dataclass)
+    if hasattr(dataclass, "_other_fields"):
+        dataclass_dict.update(dataclass._other_fields)
+    return json.dumps(dataclass_dict)
