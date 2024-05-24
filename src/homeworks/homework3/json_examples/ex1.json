@@ -1,0 +1,9 @@
+{
+  "name": "Aleksei",
+  "surname": "Ivanov",
+  "age": 20,
+  "other_bank": {"bank_name": "jija bank", "balance": {"money": 999, "loan": -2, "list_of_accounts": [1, 2, 3]}},
+  "balance": {"money": 3, "loan": 10, "list_of_accounts": [12312348, 3213241231, 213000000]},
+  "sex": "male",
+  "car": "NISAN ONI CHAN v.3.109123.1"
+}
