@@ -3,14 +3,12 @@ from typing import TypeVar
 
 import lazyparser as lp
 
-T = TypeVar("T")
-
 
 @dataclass
 class Balance(metaclass=lp.MetaDataclass):
     money: int
     loan: int
-    list_of_accounts: list[int]
+    list_of_accounts: list
 
 
 @dataclass
