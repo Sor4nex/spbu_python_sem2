@@ -1,3 +1,4 @@
+import functools
 from dataclasses import dataclass
 from typing import TypeVar
 
@@ -5,20 +6,20 @@ import lazyparser as lp
 
 
 @dataclass
-class Balance(metaclass=lp.MetaDataclass):
+class Balance(metaclass=lp.MetaORM):
     money: int
     loan: int
     list_of_accounts: list
 
 
 @dataclass
-class OtherBanks(metaclass=lp.MetaDataclass):
+class OtherBanks(metaclass=lp.MetaORM):
     bank_name: str
     balance: Balance
 
 
 @dataclass
-class Client(metaclass=lp.MetaDataclass):
+class Client(metaclass=lp.MetaORM):
     name: str
     surname: str
     age: int
@@ -27,13 +28,13 @@ class Client(metaclass=lp.MetaDataclass):
 
 
 def main() -> None:
-    client1 = lp.parse_class_from_json(Client, "json_examples/ex1.json")
-    client2 = lp.parse_class_from_json(Client, "json_examples/ex2.json", strict=True)
-    print("client1 fields:", client1.__dict__)
+    client1 = Client.from_json("json_examples/ex1.json")
+    client2 = Client.from_json("json_examples/ex2.json", strict=True)
+    print("client1 fields:", client1.__dict__, isinstance(client1.__dict__["balance"], functools.partial))
     print("client2 fields:", client2.__dict__)
     print(client1.balance)
     print(client2.balance)
-    print(lp.dump_class_to_json(client1))
+    print(client1.dump_to_json())
 
 
 if __name__ == "__main__":
