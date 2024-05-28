@@ -52,7 +52,7 @@ def main(list_len: int, output_path: str, n_threads: list[int], multiprocess: bo
     unsorted_list = [random.randint(-1000, 1000) for _ in range(list_len)]
     time_computation = {
         "single thread": count_time_merge_sort_single_thread(unsorted_list, n_threads),
-        "multithread": count_time_merge_sort_multithread(unsorted_list, n_threads, multiprocess=multiprocess),
+        "multiprocess": count_time_merge_sort_multithread(unsorted_list, n_threads, multiprocess=multiprocess),
     }
     time_dataframe = pd.DataFrame(data=time_computation, index=n_threads)
     draw_chart(time_dataframe, output_path, list_len)
