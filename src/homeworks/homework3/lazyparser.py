@@ -1,11 +1,22 @@
 import functools
 import json
 from dataclasses import asdict, dataclass
-from typing import Any, TypeVar
-
-import ijson
+from typing import Any, Type, TypeVar, get_args
 
 K = TypeVar("K")
+
+
+def get_from_json_dict(instance: K, name: str) -> Any:
+    if not hasattr(instance, "__json_data__"):
+        raise KeyError("instance was not initialized with json")
+    json_dict = getattr(instance, "__json_data__")
+    json_value = json_dict.get(name, None)
+    if json_value is None:
+        raise KeyError(f"json does not have attribute {name}")
+    value_type = instance.__annotations__[name]
+    if value_type in [int, float, str, list, tuple, dict]:
+        return value_type(json_value)
+    return value_type.from_json_dict(json_value)
 
 
 class DescrORM:
@@ -13,73 +24,29 @@ class DescrORM:
         self.name: str = name
 
     def __get__(self, instance: K, owner: type[K]) -> Any:
+        if instance is None:
+            return self
         needed = instance.__dict__.get(self.name, None)
-        if isinstance(needed, functools.partial):
-            instance.__dict__[self.name] = needed = needed()
+        if needed is None:
+            new_value = get_from_json_dict(instance, self.name)
+            instance.__dict__[self.name] = needed = new_value
         return needed
 
     def __set__(self, instance: K, value: Any) -> None:
         instance.__dict__[self.name] = value
 
 
-class MetaORM(type):
-    def __new__(cls, name: str, bases: Any, dct: dict) -> type:
-        new_cls = super().__new__(cls, name, bases, dct)
-        setattr(new_cls, "from_json", classmethod(MetaORM.from_json))
-        setattr(new_cls, "from_dict", classmethod(MetaORM.from_dict))
-        setattr(new_cls, "dump_to_json", MetaORM.dump_to_json)
-        return new_cls
+@dataclass
+class JsonORM:
+    @classmethod
+    def from_json_dict(cls: Type[K], json_dict: dict, strict: bool = False) -> K:
+        if strict and (set(json_dict.keys()) != set(cls.__annotations__.keys())):
+            raise ValueError("invalid json: some json fields differ from class fields")
+        for field in cls.__annotations__:
+            setattr(cls, field, DescrORM(field))
+        instance = cls(*[None for _ in range(len(cls.__annotations__))])
+        setattr(instance, "__json_data__", json_dict)
+        return instance
 
-    def __init__(cls, name: str, bases: Any, dct: dict) -> None:
-        for attr in cls.__annotations__:
-            setattr(cls, attr, DescrORM(attr))
-        super(MetaORM, cls).__init__(name, bases, dct)
-
-    def from_json(cls: type[Any], json_filename: str, strict: bool = False) -> Any:
-        def parse_json(file_name: str) -> dict:
-            with open(file_name) as file:
-                try:
-                    for item in ijson.items(file, ""):
-                        if isinstance(item, list):
-                            return item[0]
-                        return item
-                    return {}
-                except ijson.IncompleteJSONError:
-                    raise TypeError("file is empty")
-
-        return cls.from_dict(parse_json(json_filename), strict)
-
-    def from_dict(cls: type[Any], given_dict: dict, strict: bool = False) -> Any:
-        if not strict:
-            other_fields = {}
-            keys_to_del = []
-        cls_fields = cls.__annotations__
-        for key in given_dict:
-            if key in cls_fields:
-                arg_type = cls_fields[key]
-                if arg_type not in [int, str, float, list, tuple, dict]:
-                    given_dict[key] = functools.partial(arg_type.from_dict, given_dict[key], strict)
-                else:
-                    given_dict[key] = arg_type(given_dict[key])
-                continue
-            if not strict:
-                keys_to_del.append(key)
-                other_fields[key] = given_dict[key]
-                continue
-            raise KeyError("redundant fields were found")
-        if not strict:
-            for key in keys_to_del:
-                del given_dict[key]
-        try:
-            result = cls(**given_dict)
-            if not strict:
-                setattr(result, "_other_fields", other_fields)
-            return result
-        except TypeError:
-            raise KeyError("some dataclass fields left empty")
-
-    def dump_to_json(self: Any) -> str:
-        dataclass_dict = asdict(self)
-        if hasattr(self, "_other_fields"):
-            dataclass_dict.update(self._other_fields)
-        return json.dumps(dataclass_dict)
+    def dump_to_json(self) -> str:
+        return json.dumps(asdict(self))

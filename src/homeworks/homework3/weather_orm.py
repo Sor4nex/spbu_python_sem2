@@ -10,20 +10,20 @@ ERROR_CITY_NOT_FOUND = "ERROR: city {} not found"
 
 
 @dataclass
-class Temperature(metaclass=MetaORM):
+class Temperature(JsonORM):
     temp: float
     feels_like: float
 
 
 @dataclass
-class WeatherDescription(metaclass=MetaORM):
+class WeatherDescription(JsonORM):
     id: int
     main: str
     description: str
 
 
 @dataclass
-class Weather(metaclass=MetaORM):
+class Weather(JsonORM):
     main: Temperature
     weather: WeatherDescription
     dt: str
@@ -43,7 +43,7 @@ def get_current_weather(api_key: str, city: str, *, command: str = "weather") ->
         print(ERROR_CITY_NOT_FOUND.format(city))
         return
     json_dict["weather"] = json_dict["weather"][0]
-    json_dataclass = Weather.from_dict(json_dict)
+    json_dataclass = Weather.from_json_dict(json_dict)
     if command == "weather":
         print(
             f"City: {city}\nCurrent weather: {json_dataclass.weather.main}\nDescription: {json_dataclass.weather.description}"
@@ -71,7 +71,7 @@ def get_historical_temperature(api_key: str, city: str) -> None:
     temp_measures = []
     timings = []
     for new_data in json_dict["list"][:10]:
-        json_dataclass = Weather.from_dict(new_data)
+        json_dataclass = Weather.from_json_dict(new_data)
         temp_measures.append(json_dataclass.main.temp)
         timings.append(json_dataclass.dt)
     dataframe = pd.DataFrame(data={"temperature": temp_measures}, index=timings)
