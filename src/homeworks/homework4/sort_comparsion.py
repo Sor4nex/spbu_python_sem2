@@ -5,7 +5,7 @@ from typing import Callable
 
 import pandas as pd
 import seaborn as sns
-from merge_sort import merge_sort, merge_sort_multithread
+from merge_sort import merge_sort, merge_sort_multithread, merge_sort_multithread_sublist
 
 
 def draw_chart(measures: pd.DataFrame, chart_filename: str, n_elem: int) -> None:
@@ -39,6 +39,15 @@ def count_time_merge_sort_multithread(
     return timings
 
 
+def count_time_merge_sort_multithread_v2(
+    unsorted_list: list[int], n_jobs: list[int], *, multiprocess: bool = False
+) -> list[float]:
+    timings = []
+    for i in n_jobs:
+        timings.append(time_function(merge_sort_multithread_sublist, args=(unsorted_list, i, multiprocess)))
+    return timings
+
+
 def arg_parser_setup() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     parser.add_argument("-ll", "--list_len", type=int, default=1_000_000)
@@ -52,6 +61,7 @@ def main(list_len: int, output_path: str, n_threads: list[int], multiprocess: bo
     unsorted_list = [random.randint(-1000, 1000) for _ in range(list_len)]
     time_computation = {
         "single thread": count_time_merge_sort_single_thread(unsorted_list, n_threads),
+        "multiprocess v2": count_time_merge_sort_multithread_v2(unsorted_list, n_threads, multiprocess=multiprocess),
         "multiprocess": count_time_merge_sort_multithread(unsorted_list, n_threads, multiprocess=multiprocess),
     }
     time_dataframe = pd.DataFrame(data=time_computation, index=n_threads)
