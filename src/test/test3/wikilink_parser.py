@@ -11,7 +11,6 @@ def get_page_from_url(url: str) -> Optional[requests.models.Response]:
         return response
     except Exception as e:
         print("something went wrong:", e)
-    return
 
 
 def get_all_links(response: requests.models.Response) -> set[str]:
