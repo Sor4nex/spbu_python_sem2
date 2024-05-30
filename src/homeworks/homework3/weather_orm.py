@@ -1,10 +1,12 @@
 import argparse
+from dataclasses import dataclass
 from typing import Optional
 
 import pandas as pd
 import requests
 import seaborn as sns
 from lazyparser import *
+from lazyparser import JsonORM
 
 ERROR_CITY_NOT_FOUND = "ERROR: city {} not found"
 
