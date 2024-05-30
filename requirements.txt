@@ -1,6 +1,8 @@
-seaborn~=0.13.2
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+future>=0.18.3
+bs4>=0.0.1
+ijson>=3.2.3
+seaborn>=0.12.2
 ijson~=3.2.3
 pandas~=2.2.2
-requests~=2.31.0
-future~=0.18.2
-beautifulsoup4~=4.12.2
