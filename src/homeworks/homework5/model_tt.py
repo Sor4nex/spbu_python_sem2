@@ -11,7 +11,7 @@ class Player(metaclass=abc.ABCMeta):
         self.my_turn = Observable(my_turn)
 
     @abc.abstractmethod
-    def make_turn(self) -> None:
+    def make_turn(self, coords: tuple) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -20,8 +20,9 @@ class Player(metaclass=abc.ABCMeta):
 
 
 class UserPlayer(Player):
-    def make_turn(self) -> None:
-        self._model.make_turn(self)
+    def make_turn(self, coords: tuple) -> None:
+        print(coords)
+        # self._model.make_turn(self)
 
     def callback_turn_change(self, curr_player: Player) -> None:
         if curr_player is None:
@@ -85,13 +86,14 @@ class TicTacToe:
         player_symbol = player is self.players["player1"]
         if self.game_field[i][j] is None:
             self.game_field[i][j] = player_symbol
-        self.check_win()
+        if self.check_win():
+            return self.update_victory()
         if self.current_turn.value == self.players["player1"]:
             self.current_turn.value = self.players["player2"]
         else:
             self.current_turn.value = self.players["player1"]
 
-    def check_win(self) -> None:
+    def check_win(self) -> bool:
         horizontal_player1 = any([all(self.game_field[i]) for i in range(3)])
         vertical_player1 = any([all([self.game_field[i][j] for i in range(3)]) for j in range(3)])
         diagonal_player1 = all([self.game_field[i][i] for i in range(3)]) or all([self.game_field[len(self.game_field) - i][i] for i in range(3)])
@@ -100,14 +102,13 @@ class TicTacToe:
         vertical_player2 = any([not any([self.game_field[i][j] for i in range(3)]) for j in range(3)])
         diagonal_player2 = not any([self.game_field[i][i] for i in range(3)]) or not any([self.game_field[len(self.game_field) - i][i] for i in range(3)])
 
-
+        return any([vertical_player1, horizontal_player1, diagonal_player1, vertical_player2, horizontal_player2, diagonal_player2])
 
     def update_victory(self) -> None:
-        self.session.value = "result"
+        del self.current_turn.value
         player1, player2 = self.players["player1"], self.players["player2"]
         self.players["player1"] = self.players["player2"] = None
         del player1, player2
-        del self.current_turn.value
 
     def add_session_listener(self, callback: Callable) -> Callable:
         return self.session.add_callback(callback)

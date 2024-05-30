@@ -70,10 +70,11 @@ class GameViewModel(IViewModel):
 
     def _bind(self, view: GameView) -> None:
         turn = "player 1" if self.user.my_turn else "player2"
-        view.header.config(text=f"now turn {turn}")
-        view.btn.config(command=lambda: self.user.puke())
-        view.btn1.config(command=lambda: self._model.update_victory())
-        view.btn2.config(command=lambda: self.user.make_turn())
+        view.curr_turn_label.config(text=f"now turn {turn}")
+        for i in range(3):
+            for j in range(3):
+                com = lambda x=i, y=j: self.user.make_turn((x, y))
+                view.field_view.game_btns[i][j].config(command=com)
 
         def _destroy_wrapper(original_destroy):
             def destroy():
@@ -84,7 +85,11 @@ class GameViewModel(IViewModel):
 
         view.destroy = _destroy_wrapper(view.destroy)
 
-    def update_game_view(self, view, my_turn: bool) -> None:
+    def update_game_view(self, view, my_turn: Optional[bool]) -> None:
+        if my_turn is None:
+            pass
+            # блокируем кнопки
+            # красиво пишем что выиграл тот то игрок выйти в меню
         turn = "player 1" if my_turn else "player2"
         view.header.config(text=f"now turn {turn}")
         view.update()
