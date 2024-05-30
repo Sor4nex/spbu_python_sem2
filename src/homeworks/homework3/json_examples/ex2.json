@@ -1,0 +1,7 @@
+{
+  "name": "Iogann",
+  "surname": "Don",
+  "age": 999,
+  "balance": {"money": 999, "loan": -2, "list_of_accounts": [1, 2, 3]},
+  "other_bank": {"bank_name": "Totmyanin ltd.", "balance":  {"money": 1, "loan": 0, "list_of_accounts": []}}
+}
