@@ -6,10 +6,10 @@ from viewmodel_tt import ViewModel
 
 class App:
     APPLICATION_NAME = "TicTacToe"
-    START_SIZE = 512, 512
+    START_SIZE = 280, 512
     MIN_SIZE = 256, 256
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._root = self._setup_root()
         self._tictac_model = TicTacToe()
         self._viewmodel = ViewModel(self._tictac_model, self._root)
@@ -23,7 +23,7 @@ class App:
         root.grid_rowconfigure(0, weight=1)
         return root
 
-    def start(self):
+    def start(self) -> None:
         self._viewmodel.start()
         self._root.mainloop()
 
