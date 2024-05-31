@@ -57,8 +57,11 @@ class MainViewModel(IViewModel):
     def get_info_to_start(self, view: MainView) -> None:
         gamemode = view.select_gamemode.get()
         side = view.side.get() == "X"
-        ip = view.ip_input.get()
-        self._model.start_game(gamemode, side, ip)
+        ip_port = view.ip_input.get().split(":")
+        try:
+            self._model.start_game(gamemode, side, ip_port[0], ip_port[1])
+        except IndexError:
+            return
 
     def start(self, root: Tk, data: dict) -> ttk.Frame:
         frame = MainView(root)
