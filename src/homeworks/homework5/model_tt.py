@@ -55,9 +55,6 @@ class UserMultiplayer(Player):  # ХА! РАБОТАЕТ!
             print("error", e)
             return
 
-    def make_turn(self, coords: tuple[int, int]) -> None:
-        self._model.make_turn(self, coords)
-
     def callback_turn_change(self, curr_player: "Player", additional: dict) -> None:
         if curr_player is self or curr_player is None:
             sender = Thread(target=self.send_turn, args=(curr_player, additional))
@@ -73,7 +70,7 @@ class UserMultiplayer(Player):  # ХА! РАБОТАЕТ!
         while response is None:
             response = self.conn.recv(1024).decode().split("/")
         if response[0] == "mt":
-            self.make_turn((int(response[1]), int(response[2])))
+            self._model.make_turn(self, (int(response[1]), int(response[2])))
 
     def send_turn(self, curr_player: "Player", additional: dict) -> None:
         while self.conn is None:
