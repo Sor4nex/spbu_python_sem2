@@ -41,6 +41,7 @@ class TestModel:
 
     def test_make_turn(self) -> None:
         self.model1.start_game("One computer", True, "", "")
+
         assert self.model1.game_field == [[None, None, None] for _ in range(3)]
 
         self.model1.make_turn(self.model1.players["player1"], (0, 0))

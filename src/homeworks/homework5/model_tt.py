@@ -147,8 +147,8 @@ class TicTacToe:
             return [[None, None, None] for _ in range(3)]
 
         player1 = UserPlayer(self, is_first_turn)
-        player2: Player
         self.players["player1"] = player1
+        player2: Optional[Player] = None
         if mode == "Easy bot":
             self.gamemode = "bot"
             player2 = BotPlayerEasy(self, not is_first_turn)
