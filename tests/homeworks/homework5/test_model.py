@@ -17,12 +17,12 @@ class TestModel:
     @pytest.mark.parametrize(
         "mode, is_first_turn, ip, port, expected_opp",
         [
-            ("Easy bot", True, "", BotPlayerEasy),
-            ("Easy bot", False, "", BotPlayerEasy),
-            ("Hard bot", True, "", BotPlayerHard),
-            ("Hard bot", False, "", BotPlayerHard),
-            ("One computer", True, "", UserPlayer),
-            ("One computer", False, "", UserPlayer)
+            ("Easy bot", True, "", "", BotPlayerEasy),
+            ("Easy bot", False, "", "", BotPlayerEasy),
+            ("Hard bot", True, "", "", BotPlayerHard),
+            ("Hard bot", False, "", "", BotPlayerHard),
+            ("One computer", True, "", "", UserPlayer),
+            ("One computer", False, "", "", UserPlayer),
         ],
     )
     def test_model_start_game(self, mode, is_first_turn, ip, port, expected_opp) -> None:
