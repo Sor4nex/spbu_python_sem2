@@ -28,10 +28,10 @@ class MainView(ttk.Frame):
         self.side.set("X")
         self.side.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
-        self.ip_label = ttk.Label(self, font=("Arial", 14), text="Enter ip:")
+        self.ip_label = ttk.Label(self, font=("Arial", 14), text="Enter ip:port")
 
         self.ip_input = ttk.Entry(self)
-        self.ip_input.insert(0, "192.168.0.1")
+        self.ip_input.insert(0, "127.0.0.1:5555")
 
         self.btn = ttk.Button(self, text="Start game")
 
