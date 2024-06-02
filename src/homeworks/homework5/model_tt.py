@@ -1,9 +1,9 @@
 import abc
 import copy
 import random
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 
-from src.homeworks.homework5.observer_tt import Observable
+from observer_tt import Observable
 
 
 class Player(metaclass=abc.ABCMeta):
@@ -13,18 +13,11 @@ class Player(metaclass=abc.ABCMeta):
         self.my_turn = Observable(my_turn)
 
     @abc.abstractmethod
-    def make_turn(self, coords: tuple[int, int]) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
     def callback_turn_change(self, curr_player: "Player", additional: dict) -> None:
         raise NotImplementedError
 
 
 class UserPlayer(Player):
-    def make_turn(self, coords: tuple[int, int]) -> None:
-        self._model.make_turn(self, coords)
-
     def callback_turn_change(self, curr_player: Player, additional: dict) -> None:
         if curr_player is None:
             self.my_turn.additional_info = additional
@@ -37,9 +30,6 @@ class UserPlayer(Player):
 
 
 class BotPlayer(Player):
-    def make_turn(self, coords: tuple[int, int]) -> None:
-        self._model.make_turn(self, coords)
-
     def callback_turn_change(self, curr_player: "Player", additional: dict) -> None:
         if curr_player is self:
             self.play_game()
@@ -52,7 +42,7 @@ class BotPlayerEasy(BotPlayer):
     def play_game(self) -> None:
         available_places = [(i, j) for i in range(3) for j in range(3) if self._model.game_field[i][j] is None]
         move = random.choice(available_places)
-        self.make_turn(move)
+        self._model.make_turn(self, move)
 
 
 class BotPlayerHard(BotPlayer):
@@ -65,18 +55,19 @@ class BotPlayerHard(BotPlayer):
             i, j = coords
             local_field[i][j] = self.side
             if self._model.check_win(local_field):
-                return self.make_turn((i, j))
+                return self._model.make_turn(self, (i, j))
             local_field[i][j] = None
 
         for coords in available_places:
             i, j = coords
             local_field[i][j] = opponent_side
             if self._model.check_win(local_field):
-                return self.make_turn((i, j))
+                return self._model.make_turn(self, (i, j))
             local_field[i][j] = None
 
-        move = random.choice(available_places)
-        self.make_turn(move)
+        for coords in [(1, 1), (0, 1), (1, 0), (2, 1), (1, 2), (0, 0), (0, 2), (2, 0), (2, 2)]:
+            if coords in available_places:
+                return self._model.make_turn(self, coords)
 
 
 class TicTacToe:
@@ -101,8 +92,7 @@ class TicTacToe:
             player2 = BotPlayerHard(self, not is_first_turn)
         elif mode == "One computer":
             self.gamemode = "user"
-            player1.side = "X"
-            player2 = player1
+            player2 = UserPlayer(self, not is_first_turn)
         elif mode == "Connect to game":
             pass
         elif mode == "Create the game":
@@ -130,8 +120,6 @@ class TicTacToe:
             return self.update_victory()
         if all(all(self.game_field[i][j] is not None for i in range(3)) for j in range(3)):
             return self.update_draw()
-        if self.gamemode == "user":
-            player.side = "X" if player.side == "0" else "0"
         if self.current_turn.value == self.players["player1"]:
             self.current_turn.value = self.players["player2"]
         else:
@@ -164,18 +152,14 @@ class TicTacToe:
         )
 
     def update_draw(self) -> None:
-        self.current_turn.additional_info["winner"] = "Draw"
+        self.current_turn.additional_info["winner"] = None
         del self.current_turn.value
         self.gamemode = None
         del self.players["player1"], self.players["player2"]
 
     def update_victory(self) -> None:
         if self.current_turn.value is not None:
-            self.current_turn.additional_info["winner"] = (
-                f"Player 1 wins! ({self.current_turn.value.side})"
-                if self.current_turn.value == self.players["player1"]
-                else f"Player2 wins! ({self.current_turn.value.side})"
-            )
+            self.current_turn.additional_info["winner"] = self.current_turn.value
         del self.current_turn.value
         self.gamemode = None
         del self.players["player1"], self.players["player2"]

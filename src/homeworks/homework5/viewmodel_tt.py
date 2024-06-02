@@ -2,7 +2,7 @@ import abc
 from tkinter import Tk, ttk
 from typing import Callable, Optional
 
-from model_tt import Player, TicTacToe
+from model_tt import Player, TicTacToe, UserPlayer
 from view_tt import GameFieldView, GameView, MainView
 
 
@@ -32,7 +32,9 @@ class ViewModel:
         if mode is None:
             self.switch("main", {})
         elif mode == "game":
-            self.switch("game", {"user": self._model.players["player1"]})
+            self.switch(
+                "game", {"player 1": self._model.players["player1"], "player 2": self._model.players["player2"]}
+            )
         else:
             raise RuntimeError("Unknown state of application")
 
@@ -66,7 +68,7 @@ class MainViewModel(IViewModel):
 
 class GameViewModel(IViewModel):
     def __init__(self, model: TicTacToe) -> None:
-        self.user: Optional[Player] = None
+        self.opponent: Optional[Player] = None
         super().__init__(model)
 
     def _bind(self, view: GameView) -> None:
@@ -76,7 +78,7 @@ class GameViewModel(IViewModel):
         view.btn_quit.config(command=lambda: self._model.end_game())
         for i in range(3):
             for j in range(3):
-                com = lambda x=i, y=j: self.user.make_turn((x, y))
+                com = lambda x=i, y=j: self.make_player_turn((x, y))
                 view.field_view.game_btns[i][j].config(command=com)
 
         def _destroy_wrapper(original_destroy: Callable) -> Callable:
@@ -88,6 +90,12 @@ class GameViewModel(IViewModel):
 
         view.destroy = _destroy_wrapper(view.destroy)
 
+    def make_player_turn(self, coords: tuple[int, int]) -> None:
+        if self.user.my_turn.value:
+            self._model.make_turn(self.user, coords)
+        elif self.opponent is not None:
+            self._model.make_turn(self.opponent, coords)
+
     def update_game_view(self, view: GameView, my_turn: Optional[bool], additional: dict) -> None:
         if self.user is None:
             return
@@ -98,14 +106,24 @@ class GameViewModel(IViewModel):
             view.curr_turn_label.config(text=f"Now turn Player 1 ({self.user.side})")
             self._unblock_btns(view.field_view)
         else:
-            view.curr_turn_label.config(text=f"Now turn Player 2 ({self.user.side})")
-            self._block_btns(view.field_view)
+            side = "X" if self.user.side == "0" else "0"
+            view.curr_turn_label.config(text=f"Now turn Player 2 ({side})")
+            if self.opponent is None:
+                self._block_btns(view.field_view)
         view.update()
 
     def update_win(self, view: GameView, info: dict) -> None:
         self._block_btns(view.field_view)
         view.btn_quit.grid(row=1, columnspan=2, padx=10, pady=10)
-        view.curr_turn_label.config(text=info.get("winner", "Missing"))
+        winner = info.get("winner", None)
+        if winner is None:
+            winner_txt = "Draw!"
+        elif winner is self.user:
+            winner_txt = f"Player 1 wins! ({self.user.side})"
+        else:
+            side = "X" if self.user.side == "0" else "0"
+            winner_txt = f"Player 2 wins! ({side})"
+        view.curr_turn_label.config(text=winner_txt)
         view.update()
 
     def _block_btns(self, view: GameFieldView) -> None:
@@ -128,7 +146,10 @@ class GameViewModel(IViewModel):
                 view.game_btns[i][j].config(text=f"\n{tile}\n", state="disabled")
 
     def start(self, root: Tk, data: dict) -> ttk.Frame:
-        self.user = data["user"]
+        self.user = data["player 1"]
+        opponent = data.get("player 2", None)
+        if isinstance(opponent, UserPlayer):
+            self.opponent = opponent
         frame = GameView(root)
         self._bind(frame)
         self._turn_callback_rm: Callable = self.user.add_turn_listener(lambda x, y: self.update_game_view(frame, x, y))
