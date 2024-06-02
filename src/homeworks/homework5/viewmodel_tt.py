@@ -2,8 +2,8 @@ import abc
 from tkinter import Tk, ttk
 from typing import Callable, Optional
 
-from model_tt import Player, TicTacToe, UserPlayer
-from view_tt import GameFieldView, GameView, MainView
+from src.homeworks.homework5.model_tt import Player, TicTacToe, UserPlayer
+from src.homeworks.homework5.view_tt import GameFieldView, GameView, MainView
 
 
 class IViewModel(metaclass=abc.ABCMeta):
@@ -88,7 +88,7 @@ class GameViewModel(IViewModel):
 
             return destroy
 
-        view.destroy = _destroy_wrapper(view.destroy)
+        setattr(view, "destroy", _destroy_wrapper(view.destroy))
 
     def make_player_turn(self, coords: tuple[int, int]) -> None:
         if self.user.my_turn.value:

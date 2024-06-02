@@ -3,7 +3,7 @@ import copy
 import random
 from typing import Callable, Optional
 
-from observer_tt import Observable
+from src.homeworks.homework5.observer_tt import Observable
 
 
 class Player(metaclass=abc.ABCMeta):

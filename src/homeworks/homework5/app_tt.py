@@ -1,7 +1,7 @@
 from tkinter import Tk
 
-from model_tt import TicTacToe
-from viewmodel_tt import ViewModel
+from src.homeworks.homework5.model_tt import TicTacToe
+from src.homeworks.homework5.viewmodel_tt import ViewModel
 
 
 class App:

@@ -1,6 +1,5 @@
-from tkinter import BOTH, LEFT, YES, Event, ttk
-from tkinter.ttk import Combobox
-from typing import Any, Callable, Optional
+from tkinter import BOTH, LEFT, YES, ttk
+from typing import Any
 
 
 class MainView(ttk.Frame):
